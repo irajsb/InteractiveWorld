@@ -235,4 +235,6 @@ public:
 
 	//Draw instances that stored in TriangleInstancesMap, then clear that.
 	void DispatchDrawInstances(UCanvas* CanvasDrawOn);
+
+	int DrawIndex=0;
 };

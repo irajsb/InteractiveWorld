@@ -7,6 +7,34 @@
 #include "WorldInteractVolume.h"
 #include "InteractBrush.generated.h"
 
+
+USTRUCT(BlueprintType)
+struct FBrushWheelData
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	FVector2D LastLoc;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	FVector2D CurrentLoc;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	float LastRotation;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	float CurrentRotation;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	FVector2D UVRange;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	float Width;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	float CurrentHeight;
+	UPROPERTY(EditAnywhere,Category=Wheel,BlueprintReadWrite)
+	float LastHeight;
+	
+	
+	
+	
+	
+};
 class AWorldDrawingBoard;
 
 UCLASS(Blueprintable,ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
@@ -160,4 +188,11 @@ private:
 
 	//Find DrawingBoards which use InteractVolume that this brush will draw on from InteractVolumes
 	void UpdateDrawOnDrawingBoards();
+
+
+	UFUNCTION(BlueprintCallable)
+	FBrushWheelData CalculateWheelInfo(FTransform CurrentTransform, FTransform PreviousTransform, AWorldDrawingBoard* Board, float  CurrentHeight, FVector2D CanvasSize, float
+	                               PreviousHeight, float WheelRadius);
+	float GetAngleRatio(FVector2D Input);
+	FVector2D WheelUV(FRotator A, FRotator B);
 };

@@ -8,6 +8,7 @@
 #include "Engine/World.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "Components/PrimitiveComponent.h"
+#include "Kismet/KismetMaterialLibrary.h"
 
 #include "Logging/TokenizedMessage.h"
 #include "Logging/MessageLog.h"
@@ -35,7 +36,7 @@ bool UInteractBrush::PrepareForDrawing(TArray<TSubclassOf<AWorldDrawingBoard>>& 
 		if (bUseDrawOnlyDrawingBoardsClassList)
 		{
 			bool HasSuitableClass = false;
-			for (const auto Class : NoVolumeDrawingBoardClass)
+			for (const auto & Class : NoVolumeDrawingBoardClass)
 			{
 				if (DrawOnlyDrawingBoardsClassList.Find(Class) != -1)
 				{
@@ -225,4 +226,78 @@ void UInteractBrush::UpdateDrawOnDrawingBoards()
 			}
 		}
 	}
+}
+
+FBrushWheelData UInteractBrush::CalculateWheelInfo(FTransform CurrentTransform, FTransform PreviousTransform, AWorldDrawingBoard* Board, float CurrentHeight, FVector2D CanvasSize, float
+                                               PreviousHeight, float WheelRadius)
+{
+
+	FBrushWheelData WheelData;
+	
+	 WheelData.UVRange=WheelUV(PreviousTransform.Rotator(),CurrentTransform.Rotator());
+
+	
+	WheelData. LastLoc=Board->WorldToCanvasUV(FVector2D(PreviousTransform.GetLocation()));
+	WheelData. CurrentLoc=Board->WorldToCanvasUV(FVector2D(CurrentTransform.GetLocation()));
+	WheelData.CurrentRotation =Board->WorldToCanvasRotation(FRotationMatrix::MakeFromZY(FVector(0,0,1), CurrentTransform.GetRotation().GetForwardVector()).Rotator().Yaw);
+	WheelData.LastRotation=Board->WorldToCanvasRotation( FRotationMatrix::MakeFromZY(FVector(0,0,1), PreviousTransform.GetRotation().GetForwardVector()).Rotator().Yaw);
+	WheelData.Width=Board->WorldToCanvasSize(Size).X/CanvasSize.X;
+
+	WheelData.LastHeight=(PreviousHeight-WheelRadius)/Board->GetInteractHeight();
+	WheelData.CurrentHeight=(CurrentHeight-WheelRadius)/Board->GetInteractHeight();
+	
+	
+	/*const  float CurrentAngleRatio=GetAngleRatio(FVector2D(0,1).GetRotated(CurrentRot));
+	const float LastAngleRatio=GetAngleRatio(FVector2D(0,1).GetRotated(LastRot));
+
+	const float X=(LastLoc.X*LastAngleRatio+(CurrentLoc.Y- LastLoc.Y)-CurrentLoc.X*CurrentAngleRatio)/(LastAngleRatio-CurrentAngleRatio);
+
+	const float Y=((X-LastLoc.X)*LastAngleRatio)+LastLoc.Y;
+	FVector2D Center=FVector2D(X,Y);
+
+
+	FVector2D Dir;
+	double Len;
+	UKismetMathLibrary::ToDirectionAndLength2D(CurrentLoc-LastLoc,Dir,Len);
+	const float MoveRotation=FMath::Atan2(Dir.Y,Dir.X)-90;
+	const bool Forward=FMath::Fmod( (MoveRotation-CurrentRot+360+180),360.f)-180>0;
+
+	if(!Forward)
+	{	const float TempY=UVRange.Y;
+		UVRange.Y=UVRange.X;
+		UVRange.X=TempY;
+	}
+
+
+	
+
+	UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(),MaterialParameterCollection,"UVDepth",FLinearColor(UVRange.X,UVRange.Y,0,1));
+
+
+	const FVector2D ScreenPos=(((LastLoc+CurrentRot)/2)-FVector2D(Width,Len)/2)*CanvasSize;
+	const FVector2D ScreenSize=FVector2D(Width,Len)*CanvasSize;
+	Canvas->K2_DrawMaterial(MaterialInterface,ScreenPos,ScreenSize,FVector2D(0,0),FVector2D(1.f,1.f),(LastRot+CurrentRot/2)+90);#1#*/
+
+	return  WheelData;
+}
+
+
+
+float UInteractBrush::GetAngleRatio(FVector2D Input)
+{
+	return Input.Y/Input.X;
+}
+
+FVector2D UInteractBrush::WheelUV(FRotator A, FRotator B)
+{
+
+	FVector2D Result=FVector2D(A.Roll,B.Roll);
+	const float RollDiff=A.Roll-B.Roll;
+	const float RollSign=FMath::Sign(RollDiff);
+	const bool NeedsInverse=FMath::Abs(RollDiff)>180;
+	if(NeedsInverse)
+	{
+		Result=FVector2D(A.Roll,RollSign*(360-FMath::Abs(RollDiff))+A.Roll);
+	}
+	return Result/360.f;
 }
