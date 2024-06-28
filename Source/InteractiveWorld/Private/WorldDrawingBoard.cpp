@@ -9,6 +9,9 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "Kismet/KismetRenderingLibrary.h"
 
+DECLARE_STATS_GROUP(TEXT("IWDraw"), STATGROUP_IWDraw, STATCAT_WildCruise);
+DECLARE_CYCLE_STAT(TEXT("Interaction Draw"), STAT_InteractionDraw, STATGROUP_IWDraw);
+
 // Sets default values
 AWorldDrawingBoard::AWorldDrawingBoard()
 {
@@ -136,10 +139,19 @@ void AWorldDrawingBoard::DrawBrushes(TArray<UInteractBrush*> Brushes, UTextureRe
 	FVector2D CanvasSize;
 	FDrawToRenderTargetContext DrawContext;
 	UKismetRenderingLibrary::BeginDrawCanvasToRenderTarget(this, RTDrawOn, CanvasDrawOn, CanvasSize, DrawContext);
-	for (const auto Brush : Brushes)
-	{
-		Brush->PreDrawOnRT(this, CanvasDrawOn, CanvasSize);
-	}
+	SCOPE_CYCLE_COUNTER(STAT_InteractionDraw)
+
+		if(Brushes.IsValidIndex(DrawIndex))
+		{
+			Brushes[DrawIndex]->PreDrawOnRT(this, CanvasDrawOn, CanvasSize);
+			DrawIndex++;
+		}else
+		{
+			DrawIndex=0;
+			Brushes[DrawIndex]->PreDrawOnRT(this, CanvasDrawOn, CanvasSize);
+		}
+	
+	
 	DispatchDrawInstances(CanvasDrawOn);
 	UKismetRenderingLibrary::EndDrawCanvasToRenderTarget(this, DrawContext);
 }

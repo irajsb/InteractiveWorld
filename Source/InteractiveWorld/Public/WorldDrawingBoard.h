@@ -14,6 +14,9 @@ struct FIWTriangleList
 	TArray<FCanvasUVTri> Triangles;
 };
 
+
+
+
 UCLASS()
 class INTERACTIVEWORLD_API AWorldDrawingBoard : public AActor
 {
